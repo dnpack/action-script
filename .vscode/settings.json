@@ -1,0 +1,7 @@
+{
+    "deno.enable": true,
+    "code-runner.executorMap": {
+        "javascript": "node",
+        "typescript": "deno run -A"
+    }
+}
