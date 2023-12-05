@@ -1,11 +1,9 @@
 import { SemverVersion } from "../lib/version.ts";
 import { execCmdWaitExit } from "./private/exec.ts";
+import * as gitCmd from "./git.ts";
 import path from "node:path";
 
 const gitAction = {
-    async addTag(tagName: string, msg = tagName) {
-        return execCmdWaitExit("git", { args: ["tag", "-a", tagName, "-m", msg] });
-    },
     async deleteTags(tagName: string, lessThan: string | SemverVersion) {
         if (typeof lessThan === "string") lessThan = new SemverVersion(lessThan);
         const tags = await this.matchTags(tagName, lessThan);
@@ -25,9 +23,6 @@ const gitAction = {
             if (lessThan) return SemverVersion.compare(item, lessThan) === -1;
             return true;
         });
-    },
-    async push() {
-        return execCmdWaitExit("git", { args: ["push", "--tag"] });
     },
 };
 
@@ -52,7 +47,7 @@ export async function updateGitTag(versionStr: string, options: ExecCmdIfUpdateO
         currentVersion.anyFlag = "*";
         deleteTags = await gitAction.deleteTags(versionStr.toString(), versionStr);
     }
-    await gitAction.addTag(versionStr);
+    await gitCmd.tag.add(versionStr);
 
     return deleteTags;
 }
