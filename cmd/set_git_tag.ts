@@ -3,8 +3,8 @@ import { execCmdWaitExit } from "./private/exec.ts";
 import path from "node:path";
 
 const gitAction = {
-    async addTag(tagName: string) {
-        return execCmdWaitExit("git", { args: ["tag", tagName] });
+    async addTag(tagName: string, msg = tagName) {
+        return execCmdWaitExit("git", { args: ["tag", "-a", tagName, "-m", msg] });
     },
     async deleteTags(tagName: string, lessThan: string | SemverVersion) {
         if (typeof lessThan === "string") lessThan = new SemverVersion(lessThan);
@@ -65,18 +65,21 @@ export const npmPkg = {
     },
     /**
      * map:  prefix -> dirname
+     * @returns 如果添加了 tag, 则返回 true. 否则返回 false
      */
-    async updatePgkTags(map: Record<string, string>, options: ExecCmdIfUpdateOpts) {
+    async updatePkgTags(map: Record<string, string>, options: ExecCmdIfUpdateOpts) {
         let skin = true;
         for (const [prefix, dirname] of Object.entries(map)) {
             const version: string = await npmPkg.readVersion(dirname);
-
-            const deletes = await updateGitTag(prefix + version, options);
+            const tag = prefix + version;
+            const deletes = await updateGitTag(tag, options);
             if (deletes === null) {
-                console.log(prefix + ": skin");
+                console.log(tag + ": skin");
                 continue;
             }
-            skin = true;
+            console.log(tag + ": added");
+            skin = false;
+
             if (deletes.length) console.log(prefix + ": delete tags[" + deletes.join(", ") + "]");
         }
         return skin;
