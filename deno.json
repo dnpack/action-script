@@ -1,15 +1,15 @@
 {
+  "version": "0.0.2",
   "tasks": {},
+
   "imports": {
     "std/": "https://deno.land/std@0.208.0/"
   },
   "lint": {
     "rules": {
-      "exclude": [
-        "no-explicit-any",
-        "require-await"
-      ]
+      "exclude": ["no-explicit-any", "require-await"]
     }
   },
+  "fmt": { "lineWidth": 120 },
   "scopes": {}
 }
