@@ -13,4 +13,7 @@ export const tag = {
   async push() {
     return execCmdWaitExit("git", { args: ["push", "--tag"] });
   },
+  async deleteRemote(tags: string[], remote = "origin") {
+    return execCmdWaitExit("git", { args: ["push", remote, ...tags.map((tag) => ":" + tag)] });
+  },
 };
