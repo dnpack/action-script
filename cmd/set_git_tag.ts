@@ -1,6 +1,6 @@
 import { SemverVersion } from "../lib/version.ts";
 import { execCmdWaitExit } from "./private/exec.ts";
-import * as gitCmd from "./git.ts";
+import * as gitCmd from "./private/git.ts";
 import path from "node:path";
 
 export const gitAction = {
@@ -103,5 +103,3 @@ export const npmPkg = {
     return res;
   },
 };
-
-export { execCmdWaitExit };
