@@ -42,11 +42,18 @@ export class SemverVersion implements VersionBase {
     else if (res > 0) return 1;
     else return 0;
   }
+  static safeCreate(tagStr: string | SemverVersion) {
+    try {
+      return new this(tagStr);
+    } catch (error) {
+      return undefined;
+    }
+  }
   prefix: string;
   get version() {
     const { major, minor, patch } = this;
     const anyFlag = this.anyFlag;
-    return `${isNaN(major) ? anyFlag : major}.${isNaN(minor) ? anyFlag : minor}.${isNaN(patch) ? anyFlag : patch}`;
+    return `${isNNAN(major) ? anyFlag : major}.${isNNAN(minor) ? anyFlag : minor}.${isNNAN(patch) ? anyFlag : patch}`;
   }
 
   major: number;
@@ -67,27 +74,36 @@ export class SemverVersion implements VersionBase {
     } else if (suffix[0] === "-") {
       const group = suffix.match(/^-(?<tag>[^\.]+)(\.(?<tagNum>[x\*]|(\d*)))?$/)?.groups;
       if (group) {
-        if (!group.tagNum && /^\d+$/.test(group.tag)) {
+        if (!group.tagNum && /^(\d+)|[x\*]$/.test(group.tag)) {
           this.tagNum = +group.tag;
         } else {
           this.tag = group.tag;
-          const tagNum = +group.tagNum;
-          this.tagNum = isNaN(tagNum) ? undefined : tagNum;
+          const tagNum = group.tagNum;
+          if (tagNum) this.tagNum = +tagNum;
         }
       }
     } else throw new Error("suffix 必须以 '-'开头");
   }
   tag?: string;
   tagNum?: number;
-  constructor(versionStr: string) {
-    const regExp = /^(?<prefix>\D*)(?<major>[x\*]|(\d+))\.(?<minor>[x\*]|(\d+))\.(?<patch>[x\*]|(\d+))(?<suffix>.*)$/;
-    const group = versionStr.match(regExp)?.groups;
-    if (!group) throw new InvalidVersionError(versionStr);
-    this.prefix = group.prefix;
-    this.major = +group.major;
-    this.minor = +group.minor;
-    this.patch = +group.patch;
-    this.suffix = group.suffix;
+  constructor(versionStr: string | SemverVersion) {
+    if (typeof versionStr === "string") {
+      const regExp = /^(?<prefix>\D*)(?<major>[x\*]|(\d+))\.(?<minor>[x\*]|(\d+))\.(?<patch>[x\*]|(\d+))(?<suffix>.*)$/;
+      const group = versionStr.match(regExp)?.groups;
+      if (!group) throw new InvalidVersionError(versionStr);
+      this.prefix = group.prefix;
+      this.major = +group.major;
+      this.minor = +group.minor;
+      this.patch = +group.patch;
+      this.suffix = group.suffix;
+    } else {
+      this.prefix = versionStr.prefix;
+      this.major = versionStr.major;
+      this.minor = versionStr.minor;
+      this.patch = versionStr.patch;
+      this.tag = versionStr.tag;
+      this.tagNum = versionStr.tagNum;
+    }
   }
   update(type: "major" | "minor" | "patch" | "tagNum") {
     switch (type) {
@@ -108,13 +124,25 @@ export class SemverVersion implements VersionBase {
         if (this.tagNum !== undefined) this.tagNum++;
     }
   }
-  include(version: string | SemverVersion) {
-    if (typeof version === "string") version = new SemverVersion(version);
-    if (this.prefix !== version.prefix || this.tag !== version.tag) return false;
-    if (!isNaN(this.major) && this.major !== version.major) return false;
-    if (!isNaN(this.minor) && this.minor !== version.minor) return false;
-    if (!isNaN(this.patch) && this.patch !== version.patch) return false;
-    if (!isNaN(this.tagNum as any) && this.patch !== version.patch) return false;
+  include(version: string | SemverVersion, ignoreTag?: boolean): boolean {
+    if (typeof version === "string") {
+      try {
+        version = new SemverVersion(version);
+      } catch (error) {
+        return false;
+      }
+    }
+    if (this.prefix !== version.prefix) return false;
+    if (!ignoreTag) {
+      if (this.tag !== version.tag) return false;
+      if (!isNNAN(this.tagNum) && this.tagNum !== version.tagNum) return false;
+    }
+
+    if (isNNAN(this.major)) {
+      return true;
+    } else if (this.major !== version.major) return false;
+    if (!isNNAN(this.minor) && this.minor !== version.minor) return false;
+    if (!isNNAN(this.patch) && this.patch !== version.patch) return false;
     return true;
   }
   anyFlag = "x";
@@ -129,4 +157,7 @@ class InvalidVersionError extends Error {
   constructor(versionStr: string) {
     super(versionStr + " 不是有效的版本号");
   }
+}
+function isNNAN(vab: any) {
+  return typeof vab === "number" && isNaN(vab);
 }

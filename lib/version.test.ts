@@ -52,6 +52,17 @@ test("只有tagNum后缀", function () {
     version: "1.21.4",
   } as VersionBase as any);
 });
+test("不定版本解析", function () {
+  const v = new SemverVersion("x.x.x-x");
+  assertNaN(v.patch, "patch 为NaN");
+  assertNaN(v.major, "major 为NaN");
+  assertNaN(v.minor, "minor 为NaN");
+  assertNaN(v.tagNum, "tagNum 为NaN");
+
+  assertNaN(new SemverVersion("1.2.3-x").tagNum, "tagNum 为NaN");
+  assertNaN(new SemverVersion("1.2.3-beta.x").tagNum, "tagNum 为NaN");
+  assertNaN(new SemverVersion("1.x.x-beta.x").tagNum, "tagNum 为NaN");
+});
 test("标准解析", function () {
   const version = new SemverVersion("v1.21.4-beta.9");
   const versionBase = toVersionBase(version);
@@ -96,9 +107,12 @@ test("include", function () {
   assertFalse(new SemverVersion("v1.x.x").include("1.x.x"));
   assert(new SemverVersion("1.x.x-beta.x").include("1.x.x-beta.3"));
 
-  assert(new SemverVersion("1.x.x").include("1.3.3-3"));
+  assertFalse(new SemverVersion("1.x.x").include("1.3.3-3"));
+  assertFalse(new SemverVersion("1.x.x-1").include("1.3.3"));
   assertFalse(new SemverVersion("1.x.x").include("2.0.0"));
   assert(new SemverVersion("x.x.x").include("2.4.5"));
+
+  assertFalse(new SemverVersion("1.1.x").include("xxx"));
 });
 function toVersionBase(version: SemverVersion): VersionBase {
   return {
@@ -111,4 +125,7 @@ function toVersionBase(version: SemverVersion): VersionBase {
     tag: version.tag,
     tagNum: version.tagNum,
   };
+}
+function assertNaN(vab: any, msg: string) {
+  if (typeof vab !== "number" || !isNaN(vab)) throw new Error(msg ?? vab + "不是NAN");
 }
