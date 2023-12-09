@@ -108,7 +108,7 @@ export async function setPnpmWorkspaceTags(
     if (typeof name !== "string") {
       name = dir.slice(dir.lastIndexOf(path.sep));
     }
-    if (name.startsWith("@")) name = name.slice(name.indexOf("/" + 1));
+    if (name.startsWith("@")) name = name.slice(name.indexOf("/") + 1);
     if (name === "") throw new Error(dir + ": 包名无效");
 
     const version = new SemverVersion(pkg.version);
