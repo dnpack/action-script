@@ -3,7 +3,10 @@ import { glob } from "npm:glob@10.3.x";
 import path from "node:path";
 
 export interface PnpmWorkspaceSearchRes {
-  success: Record<string, any>[];
+  success: {
+    dir: string;
+    pkg: any;
+  }[];
   fail: any[];
   rootPkg: Record<string, any>;
 }

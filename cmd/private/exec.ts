@@ -5,7 +5,7 @@ export async function execCmdWaitExit(cmd: string, opts?: Deno.CommandOptions) {
   return toUTF8(res.stdout);
 }
 
-type ExecCmdSyncOpts = Pick<Deno.CommandOptions, "clearEnv" | "cwd" | "env" | "gid" | "uid">;
+type ExecCmdSyncOpts = Pick<Deno.CommandOptions, "clearEnv" | "cwd" | "env" | "gid" | "uid"> & { exitIfFail?: boolean };
 type ExecCmdSyncRes = { code: number; signal: Deno.Signal };
 export function execCmdSync(cmd: string, args?: string[], opts?: ExecCmdSyncOpts): ExecCmdSyncRes;
 export function execCmdSync(cmd: string, opts?: ExecCmdSyncOpts): ExecCmdSyncRes;
@@ -13,8 +13,10 @@ export function execCmdSync(cmd: string, args_opts?: string[] | ExecCmdSyncOpts,
   let args: string[] = [];
   if (Array.isArray(args_opts)) args = args_opts;
   else opts = args_opts;
+
   const command = new Deno.Command(cmd, { ...opts, args, stdin: "null", stderr: "inherit", stdout: "inherit" });
   const { code, signal } = command.outputSync();
+  if (opts?.exitIfFail && code !== 0) Deno.exit(code);
   return { code, signal };
 }
 

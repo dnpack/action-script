@@ -1,4 +1,6 @@
 import { SemverVersion } from "../lib/version.ts";
+import * as git from "./private/git.ts";
+import * as pkg from "./private/package.ts";
 import { execCmdWaitExit } from "./private/exec.ts";
 import * as gitCmd from "./private/git.ts";
 import path from "node:path";
@@ -89,6 +91,57 @@ export const npmPkg = {
     return { version, isAdded: true, dirname };
   },
 };
+/** 对PNPM工作区中的子包打标签(如果标签不存在). 返回已经添加的标签 */
+export async function setPnpmWorkspaceTags(
+  allTags: Set<string>,
+  opts: {
+    dryRun?: boolean;
+  } = {}
+) {
+  const { dryRun } = opts;
+  const { success } = await pkg.findPnpmWorkspacePkgs(".");
+
+  if (success.length === 0) console.log("没有任何升级, 跳过");
+  const tags: string[] = [];
+  for (const { pkg, dir } of success) {
+    let name: string = pkg.name;
+    if (typeof name !== "string") {
+      name = dir.slice(dir.lastIndexOf(path.sep));
+    }
+    if (name.startsWith("@")) name = name.slice(name.indexOf("/" + 1));
+    if (name === "") throw new Error(dir + ": 包名无效");
+
+    const version = new SemverVersion(pkg.version);
+    version.prefix = name + "/v";
+    const tag = version.toString();
+    if (allTags.has(tag)) {
+      console.log(tag + ": skin");
+      continue;
+    }
+
+    tags.push(tag);
+  }
+
+  for (const tag of tags) {
+    if (!dryRun) await gitCmd.tag.add(tag);
+    console.log(tag + ": added");
+  }
+  return tags;
+}
+/** 从远程仓库删除匹配的标签 */
+export async function deleteMatchFromRemote(
+  allTags: Set<string>,
+  matchList: (string | SemverVersion) | (string | SemverVersion)[],
+  level: "major" | "minor" | "patch"
+) {
+  const needDeletes = matchVersions(allTags, matchList, level);
+  if (needDeletes.length === 0) return;
+
+  console.log("正在删除: " + needDeletes.join(", "));
+  await git.tag.deleteRemote(needDeletes);
+  console.log("已删除");
+  return needDeletes;
+}
 
 export function matchVersions(
   allTags: Set<string> | string[],
