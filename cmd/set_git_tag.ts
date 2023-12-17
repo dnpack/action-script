@@ -41,7 +41,27 @@ type UpdateRes = {
   dirname: string;
   isAdded: boolean;
   version: SemverVersion;
+  tag: string;
 };
+
+/**
+ * @public
+ * @remarks 如果 allTags 中不存在 标签, 则执行 git 添加标签命令
+ */
+export async function setTagIfUpdate(allTags: Set<string>, tag: string, opts: { dryRun?: boolean } = {}) {
+  const { dryRun } = opts;
+
+  const has = allTags.has(tag);
+  if (has) {
+    console.log(tag + ": skin");
+    return false;
+  }
+
+  if (!dryRun) await gitCmd.tag.add(tag);
+  console.log(tag + ": added" + (dryRun ? "(dryRun)" : ""));
+  return true;
+}
+
 export const npmPkg = {
   /** 读取 npm 包的版本字段 */
   async readVersion(pkgDir: string, prefix?: string) {
@@ -54,6 +74,7 @@ export const npmPkg = {
    * @param map prefix -> dirname 前缀到 npm 包的目录映射
    * @param opts.dryRun 如果为 true, 则不会进行任何修改, 可用于测试
    * @remarks 根据 package.json 中的 version 设置标签(如果标签不存在)
+   * @deprecated 建议使用 setPnpmWorkspaceTags
    */
   async setGitTagsFromPkg(
     map: Record<string, string>,
@@ -75,20 +96,12 @@ export const npmPkg = {
     prefix: string,
     dirname: string,
     allTags: Set<string>,
-    opts: { dryRun?: boolean } = {}
+    opts?: { dryRun?: boolean }
   ): Promise<UpdateRes> {
-    const { dryRun } = opts;
     const version = await npmPkg.readVersion(dirname, prefix);
     const tag = version.toString();
-
-    const has = allTags.has(tag);
-    if (has) {
-      console.log(tag + ": skin");
-      return { version, isAdded: false, dirname };
-    }
-    if (!dryRun) await gitCmd.tag.add(tag);
-    console.log(tag + ": added");
-    return { version, isAdded: true, dirname };
+    const isAdded = await setTagIfUpdate(allTags, tag, opts);
+    return { version, tag, isAdded, dirname };
   },
 };
 /** 对PNPM工作区中的子包打标签(如果标签不存在). 返回已经添加的标签 */
