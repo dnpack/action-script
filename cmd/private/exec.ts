@@ -10,6 +10,9 @@ export async function execCmdWaitExit(cmd: string, opts?: Deno.CommandOptions) {
 
 type ExecCmdSyncOpts = Pick<Deno.CommandOptions, "clearEnv" | "cwd" | "env" | "gid" | "uid"> & {
   exitIfFail?: boolean;
+  onSuccess?(): void;
+  onFail?(code: number): void;
+  /** @deprecated 改用 onFail */
   beforeExit?(code: number): void;
 };
 type ExecCmdSyncRes = { code: number; signal: Deno.Signal };
@@ -22,13 +25,17 @@ export function execCmdSync(cmd: string, args_opts?: string[] | ExecCmdSyncOpts,
   let args: string[] = [];
   if (Array.isArray(args_opts)) args = args_opts;
   else opts = args_opts;
+  const { onFail, onSuccess, beforeExit, exitIfFail, ...spawnOpts } = opts ?? {};
 
-  const command = new Deno.Command(cmd, { ...opts, args, stdin: "null", stderr: "inherit", stdout: "inherit" });
+  const command = new Deno.Command(cmd, { ...spawnOpts, args, stdin: "null", stderr: "inherit", stdout: "inherit" });
   const { code, signal } = command.outputSync();
-  if (opts?.exitIfFail && code !== 0) {
-    opts.beforeExit?.(code);
-    Deno.exit(code);
-  }
+  if (code !== 0) {
+    onFail?.(code);
+    if (exitIfFail) {
+      beforeExit?.(code);
+      Deno.exit(code);
+    }
+  } else onSuccess?.();
   return { code, signal };
 }
 

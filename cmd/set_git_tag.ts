@@ -141,7 +141,7 @@ export async function setPnpmWorkspaceTags(
   }
   return tags;
 }
-/** 从远程仓库删除匹配的标签 */
+/** 从远程仓库删除 小于 level 级别的标签 */
 export async function deleteMatchFromRemote(
   allTags: Set<string>,
   matchList: (string | SemverVersion) | (string | SemverVersion)[],
