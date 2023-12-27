@@ -1,8 +1,6 @@
-import { SemverVersion } from "../lib/version.ts";
-import * as git from "./private/git.ts";
-import * as pkg from "./private/package.ts";
-import { execCmdWaitExit } from "./private/exec.ts";
-import * as gitCmd from "./private/git.ts";
+import { SemverVersion, execCmdWaitExit } from "../../lib.ts";
+import * as pkg from "./workspace.ts";
+import * as gitCmd from "../private/git.ts";
 import path from "node:path";
 
 const gitAction = {
@@ -43,7 +41,6 @@ type UpdateRes = {
   version: SemverVersion;
   tag: string;
 };
-
 /**
  * @public
  * @remarks 如果 allTags 中不存在 标签, 则执行 git 添加标签命令
@@ -140,65 +137,4 @@ export async function setPnpmWorkspaceTags(
     console.log(tag + ": added");
   }
   return tags;
-}
-/** 从远程仓库删除 小于 level 级别的标签 */
-export async function deleteMatchFromRemote(
-  allTags: Set<string>,
-  matchList: (string | SemverVersion) | (string | SemverVersion)[],
-  level: "major" | "minor" | "patch"
-) {
-  const needDeletes = matchVersions(allTags, matchList, level);
-  if (needDeletes.length === 0) return;
-
-  console.log("正在删除: " + needDeletes.join(", "));
-  await git.tag.deleteRemote(needDeletes);
-  console.log("已删除");
-  return needDeletes;
-}
-
-export function matchVersions(
-  allTags: Set<string> | string[],
-  matchList: (string | SemverVersion) | (string | SemverVersion)[],
-  level: "major" | "minor" | "patch"
-) {
-  const versionList = new Set<SemverVersion>();
-  for (const tag of allTags) {
-    const v = SemverVersion.safeCreate(tag);
-    if (v) versionList.add(v);
-  }
-  if (!(matchList instanceof Array)) matchList = [matchList];
-
-  const matchVersionList: SemverVersion[] = [];
-  for (const vStr of matchList) {
-    const version = SemverVersion.safeCreate(vStr);
-    if (!version) continue;
-    switch (level) {
-      case "major":
-        version.major = NaN;
-        version.minor = NaN;
-        version.patch = NaN;
-        break;
-      case "minor":
-        version.minor = NaN;
-        version.patch = NaN;
-        break;
-      case "patch":
-        version.patch = NaN;
-        break;
-      default:
-        continue;
-    }
-    matchVersionList.push(version);
-  }
-
-  const match: string[] = [];
-  for (const matchVersion of matchVersionList) {
-    for (const version of versionList) {
-      if (matchVersion.include(version)) {
-        versionList.delete(version);
-        match.push(version.toString());
-      }
-    }
-  }
-  return match;
 }

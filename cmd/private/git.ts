@@ -1,4 +1,4 @@
-import { execCmdWaitExit } from "./exec.ts";
+import { execCmdWaitExit } from "../../lib.ts";
 
 export const config = {
   async setUser(name: string, email: string) {
@@ -30,9 +30,3 @@ export const tag = {
     return tags;
   },
 };
-export async function setCIUser() {
-  const name = "github-ci";
-  const email = "github-ci@github.com";
-  await config.setUser(name, email);
-  console.log(`set git user:${name} ${email}`);
-}

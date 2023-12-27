@@ -2,14 +2,22 @@ import * as yaml from "https://deno.land/std@0.208.0/yaml/mod.ts";
 import { glob } from "npm:glob@10.3.x";
 import path from "node:path";
 
+/** @public */
 export interface PnpmWorkspaceSearchRes {
   success: {
+    /** 子包的绝对路径 */
     dir: string;
+    /** 子包的 package.json 信息 */
     pkg: any;
   }[];
   fail: any[];
+  /** 工作区根包的 package.json 信息 */
   rootPkg: Record<string, any>;
 }
+/**
+ * @public
+ * @remarks 查找PNPM工作区目录下的所有包的信息
+ */
 export async function findPnpmWorkspacePkgs(dir: string): Promise<PnpmWorkspaceSearchRes> {
   const [rootPkg, packagesGlob] = await Promise.all([
     readPackageJson(dir),
@@ -56,3 +64,5 @@ async function getPnpmWorkspaceDefine(file: string): Promise<string[]> {
     return [];
   }
 }
+
+// export async function packNpmPkg(dir: string) {}
