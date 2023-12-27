@@ -18,4 +18,8 @@ jobs:
           deno-version: v1.x
       - name: Publish
         if: ${{ github.ref_name=='main'}}
-        run: deno run -A .github/scripts/publish.ts
+        run: |
+          echo ::group::cache
+          deno cache .github/scripts/publish.ts
+          echo ::endgroup::
+          deno run -A .github/scripts/publish.ts
