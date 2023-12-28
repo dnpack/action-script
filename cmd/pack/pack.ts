@@ -11,6 +11,9 @@ export interface PackOpts {
   filter?(path: string): boolean;
   /** 是否开启 gzip 压缩 */
   gzip?: boolean;
+  /** 允许添加文件夹信息 */
+  allowDir?: boolean;
+  overTarget?: boolean;
 }
 /**
  * @public
@@ -19,12 +22,32 @@ export interface PackOpts {
  * @param target - 打包文件输出目录
  */
 export async function pack(dir: string, target: string, opts: PackOpts = {}) {
+  const { fileList, readable } = await packStream(dir, opts);
+  const targetFile = await Deno.open(target, {
+    write: true,
+    truncate: true,
+    create: true,
+    createNew: !opts.overTarget,
+  });
+  await readable.pipeTo(targetFile.writable);
+  return fileList;
+}
+/**
+ * @public
+ * @remarks 打包目录。返回流
+ * @param dir - 要打包的目录
+ */
+export async function packStream(
+  dir: string,
+  opts: PackOpts = {},
+): Promise<{ readable: ReadableStream<Uint8Array>; fileList: string[] }> {
   const { filter } = opts;
   const baseDir = opts.baseDir ? path.relative("/", opts.baseDir) : undefined;
 
-  // const matcher = opts.globMatch?.map((pattern) => new Minimatch(pattern, { matchBase: true, dot: true })) ?? [];
-  const { readDirCache, statCache, pathList } = await scanFiles(dir, opts.globMatch ?? [], { filter, fileOnly: true });
-  const targetFile = await Deno.open(target, { write: true, truncate: true, create: true });
+  const { readDirCache, statCache, pathList } = await scanFiles(dir, opts.globMatch ?? ["**"], {
+    filter,
+    fileOnly: !opts.allowDir,
+  });
 
   const tarPack = new Pack({
     cwd: dir,
@@ -38,28 +61,41 @@ export async function pack(dir: string, target: string, opts: PackOpts = {}) {
     },
   });
 
-  tarPack.on("data", (chunk) => targetFile.write(chunk));
   for (const filename of pathList) {
     let relPath = path.relative(dir, filename);
     if (baseDir) relPath = path.resolve("/", baseDir, relPath);
     tarPack.add(relPath);
   }
-  await new Promise<void>(function (resolve, reject) {
-    function final() {
-      targetFile.close();
-    }
-    tarPack.on("close", () => {
-      final();
-    });
-    tarPack.on("end", function () {
-      final();
-      resolve();
-    });
-    tarPack.on("error", (err) => {
-      final();
-      reject(err);
-    });
-    tarPack.end();
-  });
-  return pathList;
+  tarPack.end();
+  tarPack.setMaxListeners(10);
+  let onData: (data: Uint8Array) => void;
+  let wait = false;
+  const src: UnderlyingSource<Uint8Array> = {
+    start(ctrl) {
+      tarPack.on("error", (e) => {
+        ctrl.error(e);
+      });
+      tarPack.on("end", () => {
+        queueMicrotask(() => ctrl.close());
+      });
+      onData = (data: Uint8Array) => {
+        wait = false;
+        tarPack.off("data", onData);
+        ctrl.enqueue(data);
+      };
+    },
+
+    cancel() {
+      tarPack.destroy(new Error("ReadableStream canceled"));
+    },
+
+    pull(ctrl) {
+      if (!wait) {
+        wait = true;
+        tarPack.on("data", onData);
+      }
+    },
+  };
+  const readable = new ReadableStream<Uint8Array>(src, { highWaterMark: 16 * 1024, size: (chunk) => chunk.byteLength });
+  return { readable, fileList: pathList };
 }
