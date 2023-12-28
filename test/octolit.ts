@@ -1,5 +1,5 @@
 import { unsafeFetch } from "../lib/fetch.ts";
-import { Octokit } from "npm:@octokit/rest";
+import { Octokit } from "../deps/octokit.ts";
 const TOKEN = "";
 
 export const octokit = new Octokit({

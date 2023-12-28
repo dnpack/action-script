@@ -1,4 +1,4 @@
-import * as yaml from "https://deno.land/std@0.208.0/yaml/mod.ts";
+import * as yaml from "../../deps/std/yaml.ts";
 import { glob } from "npm:glob@10.3.x";
 import path from "node:path";
 
