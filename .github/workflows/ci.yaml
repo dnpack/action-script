@@ -19,5 +19,7 @@ jobs:
       - name: Publish
         if: ${{ github.ref_name=='main'}}
         run: |
-          echo ::group::cache
-          deno run -A -no-lock .github/scripts/publish.ts
+          echo ::group::Deno cache
+          deno run -A --no-lock .github/scripts/publish.ts
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

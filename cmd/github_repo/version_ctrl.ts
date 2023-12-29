@@ -19,7 +19,7 @@ export async function deleteMatchVersionTag(
   console.log("正在删除: " + needDeletes.join(", "));
 
   const resList = await Promise.allSettled(
-    needDeletes.map((tag) => octokit.git.deleteRef({ owner, repo, ref: "tags/" + tag })),
+    needDeletes.map((tag) => octokit.git.deleteRef({ owner, repo, ref: "refs/tags/" + tag })),
   );
   const fail: any[] = [], success: any[] = [];
   for (const res of resList) {
@@ -47,14 +47,14 @@ export async function listRemoteTags(matchPrix = "") {
  */
 export async function addRemoteTag(tagName: string, sha = getEnvStrict("GITHUB_SHA")) {
   const { owner, repo } = mergeInfo();
-  const { data } = await octokit.git.createRef({ owner, repo, ref: "tags/" + tagName, sha });
+  const { data } = await octokit.git.createRef({ owner, repo, ref: "refs/tags/" + tagName, sha });
 }
 /**
  * @remark 获取远程仓库的标签。 如果不存在，则抛出异常
  */
 export async function getRemoteTag(tagName: string) {
   const { owner, repo } = mergeInfo();
-  return octokit.git.getRef({ owner, repo, ref: "tags/" + tagName });
+  return octokit.git.getRef({ owner, repo, ref: "refs/tags/" + tagName });
 }
 /**
  * @public
@@ -62,9 +62,6 @@ export async function getRemoteTag(tagName: string) {
  * @param sha 如果不存在，则从 GITHUB_SHA 环境变量获取 (触发 Actions 的提交)
  * @returns 如果成功添加，返回 true，否则返回 false
  */
-export async function addRemoteTagIfNotExist(tagName: string, sha?: string) {
-  const exist = await getRemoteTag(tagName).then(() => true, () => false);
-  if (!exist) return false;
-  await addRemoteTag(tagName, sha);
-  return true;
+export function addRemoteTagIfNotExist(tagName: string, sha?: string) {
+  return addRemoteTag(tagName, sha).then(() => true, () => false);
 }

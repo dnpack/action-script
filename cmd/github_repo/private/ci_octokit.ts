@@ -2,6 +2,7 @@ import { Octokit } from "../../../deps/octokit.ts";
 const env = Deno.env;
 
 export const GITHUB_TOKEN = env.get("GITHUB_TOKEN");
+
 const GITHUB_REPO = env.get("GITHUB_REPOSITORY")?.split("/")?.[1];
 const GITHUB_OWNER = env.get("GITHUB_REPOSITORY_OWNER");
 export const octokit = new Octokit({ auth: GITHUB_TOKEN });
