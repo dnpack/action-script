@@ -29,4 +29,7 @@ export const tag = {
     }
     return tags;
   },
+  async delete(tagsName: string[]) {
+    await execCmdWaitExit("git", { args: ["tag", "-d", ...tagsName] });
+  },
 };

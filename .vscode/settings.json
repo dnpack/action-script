@@ -1,7 +1,13 @@
 {
-    "deno.enable": true,
-    "code-runner.executorMap": {
-        "javascript": "node",
-        "typescript": "deno run -A"
-    }
+  "deno.enable": true,
+  "code-runner.executorMap": {
+    "javascript": "node",
+    "typescript": "deno run -A"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  }
 }

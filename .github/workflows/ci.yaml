@@ -1,4 +1,4 @@
-name: ci
+name: CI
 on:
   push:
     branches:
@@ -20,6 +20,4 @@ jobs:
         if: ${{ github.ref_name=='main'}}
         run: |
           echo ::group::cache
-          deno cache .github/scripts/publish.ts
-          echo ::endgroup::
-          deno run -A .github/scripts/publish.ts
+          deno run -A -no-lock .github/scripts/publish.ts
