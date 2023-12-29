@@ -1,1 +1,1 @@
-export * from "npm:glob@10.3.x";
+export * from "https://esm.sh/glob@10";

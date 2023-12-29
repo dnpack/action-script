@@ -1,1 +1,1 @@
-export * from "npm:@actions/core@1.10.x";
+export * from "https://esm.sh/@actions/core@1";

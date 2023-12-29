@@ -1,5 +1,5 @@
 import * as yaml from "../../deps/std/yaml.ts";
-import { glob } from "npm:glob@10.3.x";
+import { glob } from "../../deps/glob.ts";
 import path from "node:path";
 
 /** @public */

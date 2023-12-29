@@ -1,4 +1,4 @@
-import tar from "npm:tar@6.2";
+import tar from "https://esm.sh/tar@6.2";
 import { Readable, Writable } from "node:stream";
 import { Stats } from "node:fs";
 interface TarCreate {

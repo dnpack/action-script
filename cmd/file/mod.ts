@@ -1,4 +1,3 @@
-// import { match, minimatch, makeRe, Minimatch } from "npm:minimatch@9";
 import { glob, Path } from "../../deps/glob.ts";
 import type { Stats } from "node:fs";
 import path from "node:path";
@@ -15,7 +14,7 @@ export async function scanFiles(
   opts: {
     fileOnly?: boolean;
     filter?: (path: string) => boolean;
-  } = {}
+  } = {},
 ) {
   const { fileOnly, filter } = opts;
   const ignoreDir = new Set<string>();
@@ -25,11 +24,12 @@ export async function scanFiles(
   globMatch = globMatch.map((pattern) => (pattern.startsWith("/") ? "." + pattern : pattern));
 
   function cache(path: string, chunk: Path) {
-    if (chunk.calledReaddir())
+    if (chunk.calledReaddir()) {
       readDirCache.set(
         chunk.fullpath(),
-        chunk.readdirCached().map((info) => info.name)
+        chunk.readdirCached().map((info) => info.name),
       );
+    }
 
     const stat = chunk.lstatCached();
     if (stat) {

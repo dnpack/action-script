@@ -1,5 +1,2 @@
-export * from "npm:@actions/artifact@2.0";
-import artifact from "npm:@actions/artifact@2.0";
-
-const artDef = artifact.default;
-export { artDef as default };
+export * from "https://esm.sh/@actions/artifact@2.0";
+export { default } from "https://esm.sh/@actions/artifact@2.0";
