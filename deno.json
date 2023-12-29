@@ -10,6 +10,5 @@
       "exclude": ["no-explicit-any", "require-await"]
     }
   },
-  "fmt": { "lineWidth": 120 },
-  "scopes": {}
+  "fmt": { "lineWidth": 120 }
 }

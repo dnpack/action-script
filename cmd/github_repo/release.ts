@@ -1,7 +1,5 @@
 import { pack } from "../pack/pack.ts";
-import { scanFiles } from "../file/mod.ts";
-import { Octokit } from "../../deps/octokit.ts";
-import client from "../../deps/actions/artifact.ts";
+import type { Octokit } from "../../deps/octokit.ts";
 import { mergeInfo, octokit } from "./private/ci_octokit.ts";
 
 export class Release {
@@ -50,19 +48,4 @@ export class Release {
   async deleteAssets(assetId: number) {
     return this.octokit.repos.deleteReleaseAsset({ owner: this.owner, repo: this.repo, asset_id: assetId });
   }
-}
-export async function uploadArtifact(
-  name: string,
-  cwd: string,
-  opts: { match?: string[]; retentionDays?: number } = {},
-) {
-  const { match, retentionDays } = opts;
-  const artifactClient = client;
-  let pathList = [cwd];
-  if (match) {
-    const res = await scanFiles(cwd, match);
-    pathList = res.pathList;
-  }
-  const res = await artifactClient.uploadArtifact(name, pathList, cwd, { retentionDays });
-  return { ...res, files: pathList };
 }

@@ -1,7 +1,7 @@
 import type { SemverVersion } from "../../lib.ts";
 import { getEnvStrict, mergeInfo, octokit } from "./private/ci_octokit.ts";
 import { matchRepoVersions } from "./private/match_tag.ts";
-import * as actions from "../../deps/actions/core.ts";
+import { core } from "../../deps/actions.ts";
 
 /**
  * @public
@@ -102,9 +102,9 @@ export async function publishFlow(tags: string | Iterable<string>, opts: Publish
   let needAdd: Iterable<string>;
   try {
     needAdd = await publish?.(needUpdateTags) ?? [];
-  } catch (error) {
-    actions.error("发布失败", { title: error?.message });
-    throw error;
+  } catch (err) {
+    core.error("发布失败", { title: err?.message });
+    throw err;
   }
   const success: string[] = [], fails: string[] = [];
   for (const tag of needAdd) {
@@ -115,9 +115,9 @@ export async function publishFlow(tags: string | Iterable<string>, opts: Publish
       fails.push(tag);
     }
   }
-  if (success.length) actions.notice(`成功添加${success.length}个标签: ${success.join(", ")}`);
-  else if (fails.length === 0) actions.notice("跳过添加标签");
+  if (success.length) core.notice(`成功添加${success.length}个标签: ${success.join(", ")}`);
+  else if (fails.length === 0) core.notice("跳过添加标签");
   if (fails.length) {
-    actions.error(`标签添加失败: ${fails.join(", ")}`);
+    core.error(`标签添加失败: ${fails.join(", ")}`);
   }
 }

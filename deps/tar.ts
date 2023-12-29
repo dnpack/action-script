@@ -1,19 +1,7 @@
-import tar from "https://esm.sh/tar@6.2";
+export * from "https://esm.sh/tar@6.2";
 import { Readable, Writable } from "node:stream";
 import { Stats } from "node:fs";
-interface TarCreate {
-  (): Readable;
-}
-interface TarExtract {
-  (): Readable;
-}
 
-export const create: TarCreate = tar.create;
-export const extract: TarExtract = tar.extract;
-
-// export const replace: TarCreate = tar.replace;
-// export const update: TarCreate = tar.update;
-// export const list: TarCreate = tar.list;
 interface Options {}
 
 interface CreateOpts {
@@ -59,9 +47,7 @@ export interface TarPack extends Readable {
   /** 完成存档。 */
   end(): void;
 }
-export const Pack: new (options?: PackConstructorOpts) => TarPack = tar.Pack;
 export interface Unpack extends Writable {}
-export const Unpack: new (options?: UnpackConstructorOpts) => Unpack = tar.Unpack;
 
 interface CommonOpts {
   /**  一个函数，如果遇到任何警告，都会被 (code, message, data) 调用。（请参阅“警告和错误”） */
