@@ -1,7 +1,7 @@
-import { glob, Path } from "../../deps/glob.ts";
+import { globDep, Path } from "../../deps/glob.ts";
 import type { Stats } from "node:fs";
 import path from "node:path";
-
+const { glob } = globDep;
 /**
  * @public
  * @remarks
