@@ -4,14 +4,18 @@ const env = Deno.env;
 
 export const GITHUB_TOKEN = env.get("GITHUB_TOKEN");
 
-const GITHUB_REPO = env.get("GITHUB_REPOSITORY")?.split("/")?.[1];
-const GITHUB_OWNER = env.get("GITHUB_REPOSITORY_OWNER");
+const [GITHUB_OWNER, GITHUB_REPO] = env.get("GITHUB_REPOSITORY")?.split("/") ?? [];
 export const octokit = new Octokit({ auth: GITHUB_TOKEN });
+export interface RepoInfoOpts {
+  owner?: string;
+  repo?: string;
+  token?: string;
+}
 
-export function mergeInfo(info: { owner?: string; repo?: string } = {}) {
-  const { owner = GITHUB_OWNER, repo = GITHUB_REPO } = info;
-  if (!owner || !repo) throw new Error("请指定 GITHUB_OWNER 和 GITHUB_REPO 环境变量");
-  return { owner, repo };
+export function mergeInfo(info: RepoInfoOpts = {}) {
+  const { owner = GITHUB_OWNER, repo = GITHUB_REPO, token = GITHUB_TOKEN } = info;
+  if (!owner || !repo) throw new Error("需要指定 GITHUB_REPOSITORY 环境变量");
+  return { owner, repo, token, octokit: new Octokit({ auth: token }) };
 }
 export function getEnvStrict(key: string) {
   const env = Deno.env.get(key);

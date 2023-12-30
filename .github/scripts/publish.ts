@@ -5,4 +5,4 @@ const tag = denoJson.version;
 
 action.endGroup();
 
-await publishFlow(tag, { publish: (needUpdate) => needUpdate });
+await publishFlow(tag, { tagFailThrow: true });
