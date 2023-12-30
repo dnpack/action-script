@@ -72,14 +72,37 @@ export class GitHubRepo {
     const { data } = await octokit.git.getRef({ owner, repo, ref: "tags/" + tagName });
     return data;
   }
+  /**
+   * @remarks 过滤在远程仓库中不存在的标签
+   */
+  async filterTagNoExist(tags: Iterable<string>, allTags?: Set<string>): Promise<Set<string>> {
+    if (!allTags) {
+      let tagList = await this.listTags();
+      allTags = new Set(tagList);
+    }
+
+    const noExist = new Set<string>();
+    for (const tag of tags) {
+      if (!allTags.has(tag)) noExist.add(tag);
+    }
+    return noExist;
+  }
+  /**
+   * @public
+   * @remarks 检测 标签是否存在
+   */
+  async tagExist(tag: string): Promise<boolean> {
+    const { repo, octokit, owner } = this;
+    return octokit.git.getRef({ owner, repo, ref: "tags/" + tag }).then(() => true, (e) => {
+      if (e?.status === 404) return false;
+      else throw e;
+    });
+  }
 }
-function tagExist(tagName: string, opts?: RepoInfoOpts) {
-  const { owner, repo, octokit } = mergeInfo(opts);
-  return octokit.git.getRef({ owner, repo, ref: "tags/" + tagName }).then(() => true, (e) => {
-    if (e?.status === 404) return false;
-    else throw e;
-  });
-}
+/**
+ * @public
+ */
+export const githubRepo = new GitHubRepo();
 
 /** @public */
 export interface PublishFlowOpts extends RepoInfoOpts {
@@ -115,7 +138,7 @@ export async function publishFlow(tags: string | Iterable<string>, opts: Publish
     const tag = Array.from(needUpdateTags)[0];
     let exist: boolean;
     if (allTags) exist = allTags.has(tag);
-    else exist = await tagExist(tag, opts);
+    else exist = await repo.tagExist(tag);
 
     if (exist) needUpdateTags.clear();
   }
