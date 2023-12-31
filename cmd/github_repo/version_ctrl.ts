@@ -127,7 +127,7 @@ export async function publishFlow(tags: string | Iterable<string>, opts: Publish
   if (!repo.token) publishMsg += "(without github token)";
   console.log(publishMsg);
 
-  const needUpdateTags = new Set(tags);
+  let needUpdateTags = new Set(tags);
 
   if (needUpdateTags.size > 1) {
     if (!allTags) allTags = new Set(await repo.listTags());
@@ -147,20 +147,20 @@ export async function publishFlow(tags: string | Iterable<string>, opts: Publish
     return;
   }
 
-  let needAdd: Iterable<string>;
   if (publish) {
     try {
-      needAdd = await publish(needUpdateTags) ?? [];
+      const needAdd = await publish(needUpdateTags) ?? [];
+      needUpdateTags = new Set(needAdd);
     } catch (err) {
       core.error("发布失败", { title: err?.message });
       throw err;
     }
-  } else needAdd = needUpdateTags;
+  }
 
-  console.log("将更新标签: " + Array.from(needAdd).join(", "));
+  console.log("将更新标签: " + Array.from(needUpdateTags).join(", "));
 
   const success: string[] = [], fails: string[] = [];
-  for (const tag of needAdd) {
+  for (const tag of needUpdateTags) {
     try {
       if (!dryRun) {
         const sha = getEnvStrict("GITHUB_SHA");
@@ -179,4 +179,5 @@ export async function publishFlow(tags: string | Iterable<string>, opts: Publish
   if (fails.length) {
     core.error(`标签添加失败: ${fails.join(", ")}`);
   }
+  return needUpdateTags;
 }
