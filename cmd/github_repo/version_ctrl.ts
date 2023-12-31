@@ -119,7 +119,7 @@ export interface PublishFlowOpts extends RepoInfoOpts {
  * @public
  * @remarks 一个发布流程： 检查版本是否存在，如果不存在存在，执行发布，发布成功后添加标签到远程
  */
-export async function publishFlow(tags: string | Iterable<string>, opts: PublishFlowOpts = {}) {
+export async function publishFlow(tags: string | Iterable<string>, opts: PublishFlowOpts = {}): Promise<Set<string>> {
   if (typeof tags === "string") tags = [tags];
   let { allTags, publish, dryRun, tagFailThrow } = opts;
   const repo = new GitHubRepo(opts);
@@ -144,7 +144,7 @@ export async function publishFlow(tags: string | Iterable<string>, opts: Publish
   }
   if (needUpdateTags.size === 0) {
     console.log("没有更新版本，跳过发布");
-    return;
+    return needUpdateTags;
   }
 
   if (publish) {
