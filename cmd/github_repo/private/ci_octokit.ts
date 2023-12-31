@@ -1,5 +1,4 @@
-import { rest } from "../../../deps/octokit.ts";
-const { Octokit } = rest;
+import { Octokit } from "../../../deps/octokit.ts";
 const env = Deno.env;
 
 export const GITHUB_TOKEN = env.get("GITHUB_TOKEN");

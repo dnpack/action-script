@@ -51,8 +51,8 @@ export async function packStream(
 
   const tarPack = new Pack({
     cwd: dir,
-    readdirCache: readDirCache,
-    statCache: statCache,
+    readdirCache: readDirCache as any,
+    statCache: statCache as any,
     gzip: opts.gzip,
     filter(filename, stat) {
       // console.log(filename);

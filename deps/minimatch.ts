@@ -1,1 +1,1 @@
-export * from "https://esm.sh/minimatch@9";
+export * from "npm:minimatch@9";

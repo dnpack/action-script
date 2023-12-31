@@ -2,6 +2,7 @@ import * as yaml from "../../deps/std/yaml.ts";
 import { SemverVersion } from "../../lib.ts";
 import { glob } from "../../deps/glob.ts";
 import path from "node:path";
+
 /** @public */
 export interface PackageJson {
   /** package.json 所在文件夹 */

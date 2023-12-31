@@ -2,7 +2,7 @@ import type { SemverVersion } from "../../lib.ts";
 import { getEnvStrict, mergeInfo, RepoInfoOpts } from "./private/ci_octokit.ts";
 import type { Octokit } from "../../deps/octokit.ts";
 import { matchRepoVersions } from "./private/match_tag.ts";
-import { core } from "../../deps/actions.ts";
+import * as core from "../../deps/actions/core.ts";
 
 export class GitHubRepo {
   readonly owner: string;
