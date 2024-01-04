@@ -1,7 +1,4 @@
-import { publishFlow } from "../../cmd/github_repo.ts";
-import denoJson from "../../deno.json" assert { type: "json" };
-const tag = denoJson.version;
+import { tagPublishFlow } from "../../cmd/github_repo.ts";
 
 console.log("::endgroup::");
-
-await publishFlow(tag, { tagFailThrow: true });
+await tagPublishFlow("NEW_TAG", () => {});

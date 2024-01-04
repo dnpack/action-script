@@ -14,10 +14,16 @@ jobs:
         uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
+      - name: Check tags
+        id: check_tags
+        run: |
+          echo ::group::Deno cache
+          deno run -A --no-lock .github/scripts/check_tag.ts
       - name: Publish
-        if: ${{ github.ref_name=='main'}}
+        if: ${{steps.check_tags.outputs.NEW_TAG}}
         run: |
           echo ::group::Deno cache
           deno run -A --no-lock .github/scripts/publish.ts
         env:
+          NEW_TAG: ${{steps.check_tags.outputs.NEW_TAG}}
           GITHUB_TOKEN: ${{secrets.CI_GITHUB_TOKEN}}
