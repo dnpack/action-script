@@ -86,7 +86,7 @@ export async function writeNewTagsToOutput(
   const newTags: string[] = Array.from(await githubRepo.filterTagNoExist(tags));
 
   if (newTags.length) {
-    console.log("Write New tags: " + newTags.join(", "));
+    console.log(`"Write ${newTags.join(", ")} to ${outputName}`);
     core.setOutput(outputName, JSON.stringify(newTags));
   } else {
     console.log("No update");
@@ -105,7 +105,7 @@ export async function writeNewTagToOutput(tag: string, outputName: string) {
 
   const exist = await githubRepo.tagExist(tag);
   if (!exist) {
-    console.log("Write New tags: " + tag);
+    console.log(`Write tag '${tag}' to ${outputName}`);
     core.setOutput(outputName, tag);
   } else {
     console.log("No update");
