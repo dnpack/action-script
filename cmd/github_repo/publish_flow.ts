@@ -82,6 +82,7 @@ export async function writeNewTagsToOutput(
   tags: Iterable<string>,
   outputName: string,
 ) {
+  if (typeof tags === "string") throw new TypeError("tags 不能是string类型");
   console.log("Check: " + Array.from(tags).join(", "));
   const newTags: string[] = Array.from(await githubRepo.filterTagNoExist(tags));
 
@@ -101,6 +102,7 @@ export async function writeNewTagsToOutput(
  * @param outputName actions 的输出名
  */
 export async function writeNewTagToOutput(tag: string, outputName: string) {
+  if (typeof tag !== "string") throw new TypeError("tag 必须是 string 类型");
   console.log("Check: " + tag);
 
   const exist = await githubRepo.tagExist(tag);
